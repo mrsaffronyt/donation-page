@@ -1,17 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
+import qrImage from './assets/qr.png'
 
 const PRESET_AMOUNTS = [51, 101, 251, 501]
-
-function loadScript(src) {
-  return new Promise((resolve) => {
-    const script = document.createElement('script')
-    script.src = src
-    script.onload = () => resolve(true)
-    script.onerror = () => resolve(false)
-    document.body.appendChild(script)
-  })
-}
+const UPI_ID = 'mrsaffronyt@ybl'
 
 export default function App() {
   const [name, setName] = useState('')
@@ -21,6 +13,7 @@ export default function App() {
   const [donors, setDonors] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetchDonors()
@@ -43,108 +36,54 @@ export default function App() {
     }
   }
 
-  async function handleRazorpayPayment() {
+
+
+  function handleSubmit() {
     if (!name.trim() || !amount) return;
-    
+    setStep('pay');
+  }
+
+  function copyUPI() {
+    navigator.clipboard.writeText(UPI_ID)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleDone() {
     setLoading(true);
-    
-    const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
-    if (!res) {
-      alert('Razorpay SDK failed to load. Are you online?');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // 1. Create order on our Vercel backend
-      const amountInPaise = Math.round(Number(amount) * 100);
-      const orderResponse = await fetch('/api/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: amountInPaise })
-      });
-      
-      const orderData = await orderResponse.json();
-      
-      if (!orderResponse.ok) {
-        throw new Error(orderData.error || 'Failed to create order');
-      }
-
-      // 2. Initialize Razorpay Checkout
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'MR.SAFFRONYT',
-        description: 'Website Contribution',
-        order_id: orderData.id,
-        handler: async function (response) {
-          try {
-            // 3. Verify payment signature on our backend
-            const verifyResponse = await fetch('/api/verify-payment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-              })
-            });
-            
-            const verifyData = await verifyResponse.json();
-            
-            if (verifyData.success) {
-              // 4. Save to Supabase only after successful verification!
-              const { error } = await supabase.from('donations').insert({
-                donor_name: name.trim(),
-                amount: Number(amount),
-                display_publicly: true,
-              });
-              
-              if (!error) {
-                setStep('done');
-                fetchDonors();
-              } else {
-                alert('Payment succeeded but failed to save record.');
-              }
-            } else {
-              alert('Payment verification failed!');
-            }
-          } catch (err) {
-            console.error(err);
-            alert('An error occurred during verification.');
-          } finally {
-            setLoading(false);
-          }
-        },
-        prefill: {
-          name: name.trim()
-        },
-        theme: {
-          color: '#f5a623'
-        },
-        modal: {
-          ondismiss: function() {
-            setLoading(false);
-          }
-        }
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      
-      paymentObject.on('payment.failed', function (response) {
-        alert('Payment failed! Reason: ' + response.error.description);
-        setLoading(false);
-      });
-      
-      paymentObject.open();
-      
-    } catch (error) {
-      console.error(error);
-      alert(error.message || 'Something went wrong');
-      setLoading(false);
+    const { error } = await supabase.from('donations').insert({
+      donor_name: name.trim(),
+      amount: Number(amount),
+      display_publicly: true,
+    });
+    setLoading(false);
+    if (!error) {
+      setStep('done');
+      fetchDonors();
     }
   }
+
+  const getUpiUrl = (app) => {
+    const amt = Number(amount).toFixed(2);
+    const pn = encodeURIComponent('Chinesh Soni');
+    const tn = encodeURIComponent('Website Contribution');
+    const query = `pa=${UPI_ID}&pn=${pn}&am=${amt}&cu=INR&tn=${tn}`;
+    
+    const isAndroid = /Android/i.test(navigator.userAgent || '');
+    
+    if (app === 'gpay') {
+      return isAndroid 
+        ? `intent://pay?${query}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`
+        : `tez://upi/pay?${query}`;
+    }
+    if (app === 'phonepe') {
+      return isAndroid 
+        ? `intent://pay?${query}#Intent;scheme=upi;package=com.phonepe.app;end;`
+        : `phonepe://pay?${query}`;
+    }
+    
+    return `upi://pay?${query}`;
+  };
 
   function resetForm() {
     setStep('form')
@@ -218,10 +157,10 @@ export default function App() {
             )}
 
             <button
-              onClick={handleRazorpayPayment}
+              onClick={handleSubmit}
               disabled={loading || !name.trim() || !amount}
               className="primary-btn"
-            >{loading ? 'Processing...' : 'PAY WITH RAZORPAY →'}</button>
+            >{loading ? 'Processing...' : 'PROCEED TO PAY →'}</button>
 
             <div className="paypal-container" style={{ marginTop: '20px', textAlign: 'center' }}>
               <p style={{ margin: '10px 0', color: '#888', fontSize: '14px' }}>Or pay internationally via PayPal</p>
@@ -249,6 +188,54 @@ export default function App() {
                 PAY WITH PAYPAL
               </a>
             </div>
+          </div>
+        )}
+
+        {/* STEP: PAY */}
+        {step === 'pay' && (
+          <div className="card pay-card">
+            <h2 className="pay-title">SCAN & PAY</h2>
+            <p className="pay-subtitle">Scan the QR code or tap an app below</p>
+
+            {/* Summary */}
+            <div className="summary-box">
+              <span>{name}</span>
+              <span style={{ opacity: 0.4 }}>·</span>
+              <strong>₹{Number(amount).toLocaleString('en-IN')}</strong>
+            </div>
+
+            {/* QR */}
+            <div className="qr-box">
+              <img src={qrImage} alt="UPI QR Code" />
+            </div>
+
+            {/* UPI ID */}
+            <div className="upi-box">
+              <div>
+                <div className="upi-label">UPI ID</div>
+                <div className="upi-value">{UPI_ID}</div>
+              </div>
+              <button onClick={copyUPI} className={`copy-btn ${copied ? 'active' : ''}`}>
+                {copied ? '✓ Copied' : 'Copy'}
+              </button>
+            </div>
+
+            {/* App buttons */}
+            <p className="form-label" style={{ marginBottom: '10px' }}>
+              📱 Tap to open on mobile
+            </p>
+            <div className="app-grid">
+              <button onClick={() => window.location.href = getUpiUrl('gpay')}
+                className="app-btn" style={{ background: '#1A73E8' }}>Google Pay</button>
+              <button onClick={() => window.location.href = getUpiUrl('phonepe')}
+                className="app-btn" style={{ background: '#5f259f' }}>PhonePe</button>
+              <button onClick={() => window.location.href = getUpiUrl('upi')}
+                className="app-btn" style={{ background: '#374151' }}>Any UPI App</button>
+            </div>
+
+            <button onClick={handleDone} className="pay-done-btn">I HAVE PAID ✓</button>
+
+            <button onClick={() => setStep('form')} className="back-btn">← Go back</button>
           </div>
         )}
 
