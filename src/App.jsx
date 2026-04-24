@@ -3,14 +3,13 @@ import { supabase } from './supabase'
 import qrImage from './assets/qr.png'
 
 const UPI_ID = 'chineshsoni2@okhdfcbank'
-
 const PRESET_AMOUNTS = [51, 101, 251, 501]
 
 export default function App() {
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [customAmount, setCustomAmount] = useState(false)
-  const [step, setStep] = useState('form') // 'form' | 'pay' | 'done'
+  const [step, setStep] = useState('form')
   const [donors, setDonors] = useState([])
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -46,7 +45,14 @@ export default function App() {
       display_publicly: true,
     })
     setLoading(false)
-    if (!error) setStep('pay')
+    if (!error) {
+      setStep('pay')
+    }
+  }
+
+  function handleUPIPay() {
+    const upiLink = `upi://pay?pa=chineshsoni2@okhdfcbank&pn=Chinesh%20Soni&am=${amount}&cu=INR&tn=Donation`
+    window.location.href = upiLink
   }
 
   function copyUPI() {
@@ -206,45 +212,12 @@ export default function App() {
         }}>
           <h2 style={{ fontSize: 24, color: 'var(--cyan)', marginBottom: 4 }}>SCAN & PAY</h2>
           <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 20 }}>
-            Open any UPI app and scan the QR code
+            Choose how you want to pay
           </p>
 
+          {/* Amount + name summary */}
           <div style={{
-            background: '#fff',
-            borderRadius: 16,
-            padding: 12,
-            display: 'inline-block',
-            boxShadow: '0 0 40px rgba(0,212,255,0.15)'
-          }}>
-            <img src={qrImage} alt="UPI QR Code" style={{ width: 220, height: 220, display: 'block' }} />
-          </div>
-
-          <div style={{
-            marginTop: 20,
-            background: 'var(--navy3)',
-            borderRadius: 12,
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            border: '1px solid rgba(255,255,255,0.06)'
-          }}>
-            <span style={{ fontSize: 13, color: 'var(--muted)' }}>UPI ID</span>
-            <span style={{ fontSize: 14, color: 'var(--white)', fontWeight: 500 }}>{UPI_ID}</span>
-            <button onClick={copyUPI} style={{
-              background: copied ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.06)',
-              border: 'none',
-              borderRadius: 8,
-              padding: '6px 12px',
-              color: copied ? 'var(--cyan)' : 'var(--muted)',
-              fontSize: 12,
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}>{copied ? '✓ Copied' : 'Copy'}</button>
-          </div>
-
-          <div style={{
-            marginTop: 16,
+            marginBottom: 20,
             background: 'rgba(245,166,35,0.08)',
             border: '1px solid rgba(245,166,35,0.2)',
             borderRadius: 12,
@@ -255,20 +228,87 @@ export default function App() {
             Paying: <strong>₹{Number(amount).toLocaleString('en-IN')}</strong> · {name}
           </div>
 
+          {/* UPI Section */}
+          <div style={{
+            background: 'var(--navy3)',
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 16,
+            border: '1px solid rgba(255,255,255,0.06)'
+          }}>
+            <p style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              Pay via UPI / Scan
+            </p>
+
+            <div style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: 10,
+              display: 'inline-block',
+              boxShadow: '0 0 30px rgba(0,212,255,0.1)',
+              marginBottom: 12
+            }}>
+              <img src={qrImage} alt="UPI QR Code" style={{ width: 200, height: 200, display: 'block' }} />
+            </div>
+
+            {/* UPI ID row */}
+            <div style={{
+              background: 'var(--navy2)',
+              borderRadius: 10,
+              padding: '10px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 12,
+              border: '1px solid rgba(255,255,255,0.06)'
+            }}>
+              <span style={{ fontSize: 13, color: 'var(--muted)' }}>UPI ID</span>
+              <span style={{ fontSize: 13, color: 'var(--white)', fontWeight: 500 }}>{UPI_ID}</span>
+              <button onClick={copyUPI} style={{
+                background: copied ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.06)',
+                border: 'none',
+                borderRadius: 8,
+                padding: '6px 12px',
+                color: copied ? 'var(--cyan)' : 'var(--muted)',
+                fontSize: 12,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}>{copied ? '✓ Copied' : 'Copy'}</button>
+            </div>
+
+            {/* UPI deep link button */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+  <p style={{ color: 'var(--muted)', fontSize: 11, marginBottom: 4 }}>
+    📱 Tap to open on mobile:
+  </p>
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+    <button onClick={() => window.location.href = `gpay://upi/pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
+      style={upiAppBtn('#1A73E8')}>Google Pay</button>
+    <button onClick={() => window.location.href = `phonepe://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
+      style={upiAppBtn('#5f259f')}>PhonePe</button>
+    <button onClick={() => window.location.href = `paytmmp://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
+      style={upiAppBtn('#00BAF2')}>Paytm</button>
+    <button onClick={() => window.location.href = `upi://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
+      style={upiAppBtn('#6B7280')}>Any UPI App</button>
+  </div>
+</div>
+          </div>
+
+          {/* I have paid button */}
           <button
             onClick={handleDone}
             style={{
               width: '100%',
-              marginTop: 24,
               padding: '15px 0',
               borderRadius: 12,
-              border: 'none',
-              background: 'linear-gradient(135deg, var(--saffron), #e8920a)',
-              color: '#0a0f1e',
+              border: '1px solid rgba(0,212,255,0.3)',
+              background: 'transparent',
+              color: 'var(--cyan)',
               fontFamily: 'Bebas Neue',
               fontSize: 20,
               letterSpacing: '0.08em',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              marginBottom: 8
             }}
           >I HAVE PAID ✓</button>
 
@@ -279,7 +319,7 @@ export default function App() {
               border: 'none',
               color: 'var(--muted)',
               fontSize: 13,
-              marginTop: 12,
+              marginTop: 4,
               cursor: 'pointer',
               textDecoration: 'underline'
             }}
@@ -395,7 +435,7 @@ const labelStyle = {
   textTransform: 'uppercase'
 }
 
-const inputStyle = {
+const inputStyle = { You 
   width: '100%',
   padding: '12px 14px',
   borderRadius: 10,
@@ -407,3 +447,16 @@ const inputStyle = {
   marginBottom: 4,
   fontFamily: 'DM Sans, sans-serif'
 }
+
+
+const upiAppBtn = (bg) => ({
+  padding: '12px 0',
+  borderRadius: 10,
+  border: 'none',
+  background: bg,
+  color: '#fff',
+  fontFamily: 'Bebas Neue',
+  fontSize: 16,
+  letterSpacing: '0.06em',
+  cursor: 'pointer'
+})
