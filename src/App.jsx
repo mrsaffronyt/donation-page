@@ -63,28 +63,7 @@ export default function App() {
     }
   }
 
-  const getUpiUrl = (app) => {
-    const amt = Number(amount).toFixed(2);
-    const pn = encodeURIComponent('Chinesh Soni');
-    const tn = encodeURIComponent('Website Contribution');
-    const tr = `txn${Date.now()}`; // Unique transaction reference (required by PhonePe/GPay)
-    const query = `pa=${UPI_ID}&pn=${pn}&am=${amt}&cu=INR&tn=${tn}&tr=${tr}`;
-    
-    const isAndroid = /Android/i.test(navigator.userAgent || '');
-    
-    if (app === 'gpay') {
-      return isAndroid 
-        ? `intent://pay?${query}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`
-        : `tez://upi/pay?${query}`;
-    }
-    if (app === 'phonepe') {
-      return isAndroid 
-        ? `intent://pay?${query}#Intent;scheme=upi;package=com.phonepe.app;end;`
-        : `phonepe://pay?${query}`;
-    }
-    
-    return `upi://pay?${query}`;
-  };
+
 
   function resetForm() {
     setStep('form')
@@ -221,18 +200,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* App buttons */}
-            <p className="form-label" style={{ marginBottom: '10px' }}>
-              📱 Tap to open on mobile
-            </p>
-            <div className="app-grid">
-              <button onClick={() => window.location.href = getUpiUrl('gpay')}
-                className="app-btn" style={{ background: '#1A73E8' }}>Google Pay</button>
-              <button onClick={() => window.location.href = getUpiUrl('phonepe')}
-                className="app-btn" style={{ background: '#5f259f' }}>PhonePe</button>
-              <button onClick={() => window.location.href = getUpiUrl('upi')}
-                className="app-btn" style={{ background: '#374151' }}>Any UPI App</button>
-            </div>
+            {/* App buttons removed */}
 
             <button onClick={handleDone} className="pay-done-btn">I HAVE PAID ✓</button>
 
