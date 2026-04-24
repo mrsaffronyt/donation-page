@@ -1,6 +1,6 @@
-const Razorpay = require('razorpay');
+import Razorpay from 'razorpay';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -30,4 +30,4 @@ module.exports = async (req, res) => {
     console.error('Error creating Razorpay order:', error);
     return res.status(500).json({ error: 'Failed to create order' });
   }
-};
+}

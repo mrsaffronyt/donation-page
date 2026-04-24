@@ -1,6 +1,6 @@
-const crypto = require('crypto');
+import crypto from 'crypto';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -29,4 +29,4 @@ module.exports = async (req, res) => {
     console.error('Error verifying payment:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
-};
+}
