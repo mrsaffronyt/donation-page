@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 import qrImage from './assets/qr.png'
 
 const PRESET_AMOUNTS = [51, 101, 251, 501]
-const UPI_ID = 'mrsaffronyt@ybl'
+const UPI_ID = 'chineshsoni2@okhdfcbank'
 
 export default function App() {
   const [name, setName] = useState('')
