@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap');
 
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -16,6 +14,7 @@
   --cyan: #00d4ff;
   --white: #f0f4ff;
   --muted: #8899aa;
+  --glass: rgba(255, 255, 255, 0.05);
 }
 
 body {
@@ -23,11 +22,442 @@ body {
   color: var(--white);
   font-family: 'DM Sans', sans-serif;
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Center the mobile view on desktop */
 }
 
-h1,
-h2,
-h3 {
+/* Mobile Wrapper */
+.mobile-wrapper {
+  width: 100%;
+  max-width: 420px; /* strict mobile width */
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  background: var(--navy);
+  position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+}
+
+@media (min-width: 480px) {
+  .mobile-wrapper {
+    height: 90vh;
+    border-radius: 40px;
+    border: 8px solid #222;
+    overflow-y: scroll;
+    /* Hide scrollbar for Chrome, Safari and Opera */
+  }
+  .mobile-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+  .mobile-wrapper {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+.app-container {
+  padding: 32px 20px 80px;
+}
+
+/* Typography */
+h1, h2, h3 {
   font-family: 'Bebas Neue', sans-serif;
   letter-spacing: 0.04em;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.brand {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--saffron), #e8920a);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #0a0f1e;
+  margin-bottom: 16px;
+}
+.title {
+  font-size: 44px;
+  line-height: 1.05;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+.highlight {
+  color: var(--saffron);
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.total-box {
+  margin-top: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--navy3);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 50px;
+  padding: 12px 24px;
+}
+.total-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+.separator {
+  width: 1px;
+  height: 16px;
+  background: rgba(255,255,255,0.1);
+}
+.total-amount {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  color: var(--saffron);
+  letter-spacing: 0.04em;
+}
+
+/* Cards & Sections */
+.card {
+  background: var(--navy2);
+  border: 1px solid rgba(245,166,35,0.12);
+  border-radius: 20px;
+  padding: 28px 24px;
+  margin-bottom: 24px;
+}
+.card.pay-card {
+  border-color: rgba(0,212,255,0.12);
+  text-align: center;
+}
+.section-title {
+  font-size: 22px;
+  color: var(--saffron);
+  margin-bottom: 24px;
+}
+
+/* Form */
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  text-align: left;
+}
+.form-input {
+  width: 100%;
+  padding: 15px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--navy3);
+  color: var(--white);
+  font-size: 16px;
+  outline: none;
+  margin-bottom: 4px;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s;
+}
+.form-input:focus {
+  border-color: var(--saffron);
+}
+
+.amount-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.amount-btn {
+  padding: 14px 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--navy3);
+  color: var(--white);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.amount-btn.active {
+  border: 2px solid var(--saffron);
+  background: rgba(245,166,35,0.1);
+  color: var(--saffron);
+}
+.custom-amount-btn {
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 12px;
+  border: 1px dashed rgba(255,255,255,0.15);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+.custom-amount-btn.active {
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+}
+
+.primary-btn {
+  width: 100%;
+  margin-top: 24px;
+  padding: 18px 0;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--saffron), #e8920a);
+  color: #0a0f1e;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.primary-btn:active {
+  transform: scale(0.98);
+}
+.primary-btn:disabled {
+  background: rgba(245,166,35,0.25);
+  color: rgba(10,15,30,0.5);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Pay Step */
+.pay-title {
+  font-size: 24px;
+  color: var(--cyan);
+  margin-bottom: 8px;
+}
+.pay-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+.summary-box {
+  background: rgba(245,166,35,0.07);
+  border: 1px solid rgba(245,166,35,0.18);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--saffron);
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.qr-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  display: inline-block;
+  box-shadow: 0 0 40px rgba(0,212,255,0.1);
+  margin-bottom: 20px;
+}
+.qr-box img {
+  width: 200px;
+  height: 200px;
+  display: block;
+}
+.upi-box {
+  background: var(--navy3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255,255,255,0.06);
+  text-align: left;
+}
+.upi-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.upi-value {
+  font-size: 14px;
+  color: var(--white);
+  font-weight: 500;
+}
+.copy-btn {
+  background: rgba(255,255,255,0.06);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.copy-btn.active {
+  background: rgba(0,212,255,0.12);
+  color: var(--cyan);
+}
+.app-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.app-btn {
+  padding: 14px 0;
+  border-radius: 12px;
+  border: none;
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.app-btn:active {
+  opacity: 0.8;
+}
+.pay-done-btn {
+  width: 100%;
+  padding: 16px 0;
+  border-radius: 14px;
+  border: 1px solid rgba(0,212,255,0.25);
+  background: transparent;
+  color: var(--cyan);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 8px;
+}
+
+/* Donor Wall */
+.donor-wall {
+  margin-top: 48px;
+}
+.donor-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.donor-title {
+  font-size: 26px;
+}
+.donor-count {
+  font-size: 13px;
+  color: var(--muted);
+}
+.donor-empty {
+  background: var(--navy2);
+  border-radius: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+  border: 1px dashed rgba(255,255,255,0.07);
+}
+.donor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.donor-card {
+  background: var(--navy2);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.donor-card.top {
+  border: 1px solid rgba(245,166,35,0.25);
+}
+.donor-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.donor-card.top .donor-avatar {
+  background: rgba(245,166,35,0.15);
+  color: var(--saffron);
+}
+.donor-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.donor-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--white);
+  text-align: left;
+}
+.donor-date {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-align: left;
+}
+.donor-amount {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--cyan);
+  letter-spacing: 0.04em;
+}
+.donor-card.top .donor-amount {
+  color: var(--saffron);
+}
+
+/* Done Step */
+.done-icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+}
+.done-title {
+  font-size: 32px;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+.done-text {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 280px;
+  margin: 0 auto 32px;
+}
+.done-btn {
+  padding: 14px 36px;
+  border-radius: 14px;
+  border: 1px solid rgba(245,166,35,0.3);
+  background: transparent;
+  color: var(--saffron);
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 500;
 }
