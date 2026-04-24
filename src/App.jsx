@@ -67,7 +67,8 @@ export default function App() {
     const amt = Number(amount).toFixed(2);
     const pn = encodeURIComponent('Chinesh Soni');
     const tn = encodeURIComponent('Website Contribution');
-    const query = `pa=${UPI_ID}&pn=${pn}&am=${amt}&cu=INR&tn=${tn}`;
+    const tr = `txn${Date.now()}`; // Unique transaction reference (required by PhonePe/GPay)
+    const query = `pa=${UPI_ID}&pn=${pn}&am=${amt}&cu=INR&tn=${tn}&tr=${tr}`;
     
     const isAndroid = /Android/i.test(navigator.userAgent || '');
     
