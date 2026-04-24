@@ -5,6 +5,42 @@ import qrImage from './assets/qr.png'
 const UPI_ID = 'chineshsoni2@okhdfcbank'
 const PRESET_AMOUNTS = [51, 101, 251, 501]
 
+const upiAppBtn = (bg) => ({
+  padding: '13px 0',
+  borderRadius: 10,
+  border: 'none',
+  background: bg,
+  color: '#fff',
+  fontFamily: 'Bebas Neue',
+  fontSize: 17,
+  letterSpacing: '0.06em',
+  cursor: 'pointer',
+  transition: 'opacity 0.2s',
+})
+
+const labelStyle = {
+  display: 'block',
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.12em',
+  color: 'var(--muted)',
+  marginBottom: 8,
+  textTransform: 'uppercase',
+}
+
+const inputStyle = {
+  width: '100%',
+  padding: '13px 14px',
+  borderRadius: 10,
+  border: '1px solid rgba(255,255,255,0.1)',
+  background: 'var(--navy3)',
+  color: 'var(--white)',
+  fontSize: 15,
+  outline: 'none',
+  marginBottom: 4,
+  fontFamily: 'DM Sans, sans-serif',
+}
+
 export default function App() {
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
@@ -19,7 +55,7 @@ export default function App() {
     fetchDonors()
     const channel = supabase
       .channel('donations')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'donations' }, () => fetchDonors())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'donations' }, fetchDonors)
       .subscribe()
     return () => supabase.removeChannel(channel)
   }, [])
@@ -36,24 +72,13 @@ export default function App() {
     }
   }
 
-  async function handleSubmit() {
-    if (!name.trim() || !amount) return
-    setLoading(true)
-    const { error } = await supabase.from('donations').insert({
-      donor_name: name.trim(),
-      amount: Number(amount),
-      display_publicly: true,
-    })
-    setLoading(false)
-    if (!error) {
-      setStep('pay')
-    }
+function handleSubmit() {
+  // Validate inputs before proceeding to payment step
+  if (!name.trim() || !amount) {
+    return;
   }
-
-  function handleUPIPay() {
-    const upiLink = `upi://pay?pa=chineshsoni2@okhdfcbank&pn=Chinesh%20Soni&am=${amount}&cu=INR&tn=Donation`
-    window.location.href = upiLink
-  }
+  setStep('pay');
+}
 
   function copyUPI() {
     navigator.clipboard.writeText(UPI_ID)
@@ -61,48 +86,67 @@ export default function App() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  function handleDone() {
-    setStep('done')
-    fetchDonors()
+  // Async function to finalize donation after payment
+async function handleDone() {
+  setLoading(true);
+  const { error } = await supabase.from('donations').insert({
+    donor_name: name.trim(),
+    amount: Number(amount),
+    display_publicly: true,
+  });
+  setLoading(false);
+  if (!error) {
+    setStep('done');
+    fetchDonors();
+  }
+}
+
+  function resetForm() {
+    setStep('form')
+    setName('')
+    setAmount('')
+    setCustomAmount(false)
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px 80px' }}>
+    <div style={{ maxWidth: 460, margin: '0 auto', padding: '32px 16px 80px' }}>
 
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 36 }}>
-        <div style={{
+      {/* HEADER */}
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <span style={{
           display: 'inline-block',
-          background: 'linear-gradient(135deg, var(--saffron), #ff8c00)',
-          borderRadius: 12,
-          padding: '6px 18px',
-          marginBottom: 12,
-          fontSize: 12,
-          fontWeight: 600,
-          letterSpacing: '0.12em',
-          color: '#0a0f1e'
-        }}>MR.SAFFRONYT</div>
-        <h1 style={{ fontSize: 38, lineHeight: 1.1, color: 'var(--white)' }}>
+          background: 'linear-gradient(135deg, var(--saffron), #e8920a)',
+          borderRadius: 8,
+          padding: '4px 14px',
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.14em',
+          color: '#0a0f1e',
+          marginBottom: 14,
+        }}>MR.SAFFRONYT</span>
+
+        <h1 style={{ fontSize: 40, lineHeight: 1.08, color: 'var(--white)', marginBottom: 10 }}>
           HELP BUILD<br />
           <span style={{ color: 'var(--saffron)' }}>THE WEBSITE</span>
         </h1>
-        <p style={{ color: 'var(--muted)', marginTop: 10, fontSize: 14 }}>
-          Every contribution by <strong style={{ color: 'var(--cyan)' }}>Chinesh Soni</strong> goes directly into building something amazing.
+
+        <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6, maxWidth: 320, margin: '0 auto' }}>
+          Support <strong style={{ color: 'var(--white)' }}>Chinesh Soni</strong> in building something great for the community.
         </p>
 
-        {/* Total raised */}
         <div style={{
-          marginTop: 20,
+          marginTop: 24,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 12,
           background: 'var(--navy3)',
-          border: '1px solid rgba(0,212,255,0.2)',
-          borderRadius: 14,
-          padding: '14px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+          border: '1px solid rgba(0,212,255,0.15)',
+          borderRadius: 50,
+          padding: '10px 24px',
         }}>
           <span style={{ color: 'var(--muted)', fontSize: 13 }}>Total raised</span>
-          <span style={{ fontFamily: 'Bebas Neue', fontSize: 28, color: 'var(--saffron)', letterSpacing: '0.04em' }}>
+          <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />
+          <span style={{ fontFamily: 'Bebas Neue', fontSize: 24, color: 'var(--saffron)', letterSpacing: '0.04em' }}>
             ₹{total.toLocaleString('en-IN')}
           </span>
         </div>
@@ -112,11 +156,13 @@ export default function App() {
       {step === 'form' && (
         <div style={{
           background: 'var(--navy2)',
-          border: '1px solid rgba(245,166,35,0.15)',
+          border: '1px solid rgba(245,166,35,0.12)',
           borderRadius: 20,
-          padding: 24
+          padding: '28px 24px',
         }}>
-          <h2 style={{ fontSize: 22, marginBottom: 20, color: 'var(--saffron)' }}>YOUR CONTRIBUTION</h2>
+          <h2 style={{ fontSize: 20, color: 'var(--saffron)', marginBottom: 24, letterSpacing: '0.04em' }}>
+            YOUR CONTRIBUTION
+          </h2>
 
           <label style={labelStyle}>Your Name</label>
           <input
@@ -126,26 +172,26 @@ export default function App() {
             onChange={e => setName(e.target.value)}
           />
 
-          <label style={{ ...labelStyle, marginTop: 18 }}>Select Amount</label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          <label style={{ ...labelStyle, marginTop: 20 }}>Select Amount</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             {PRESET_AMOUNTS.map(a => (
               <button
                 key={a}
                 onClick={() => { setAmount(a); setCustomAmount(false) }}
                 style={{
-                  padding: '12px 0',
+                  padding: '13px 0',
                   borderRadius: 10,
                   border: amount === a && !customAmount
                     ? '2px solid var(--saffron)'
-                    : '1px solid rgba(255,255,255,0.1)',
+                    : '1px solid rgba(255,255,255,0.08)',
                   background: amount === a && !customAmount
-                    ? 'rgba(245,166,35,0.12)'
+                    ? 'rgba(245,166,35,0.1)'
                     : 'var(--navy3)',
                   color: amount === a && !customAmount ? 'var(--saffron)' : 'var(--white)',
                   fontSize: 16,
                   fontWeight: 600,
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.15s',
                 }}
               >₹{a}</button>
             ))}
@@ -155,15 +201,15 @@ export default function App() {
             onClick={() => { setCustomAmount(true); setAmount('') }}
             style={{
               width: '100%',
-              padding: '10px 0',
+              padding: '11px 0',
               borderRadius: 10,
-              border: customAmount ? '2px solid var(--cyan)' : '1px dashed rgba(255,255,255,0.2)',
+              border: customAmount ? '1px solid var(--cyan)' : '1px dashed rgba(255,255,255,0.15)',
               background: 'transparent',
               color: customAmount ? 'var(--cyan)' : 'var(--muted)',
-              fontSize: 14,
+              fontSize: 13,
               cursor: 'pointer',
               marginBottom: customAmount ? 10 : 0,
-              transition: 'all 0.2s'
+              transition: 'all 0.15s',
             }}
           >+ Enter custom amount</button>
 
@@ -184,18 +230,18 @@ export default function App() {
             style={{
               width: '100%',
               marginTop: 24,
-              padding: '15px 0',
+              padding: '16px 0',
               borderRadius: 12,
               border: 'none',
               background: (!name.trim() || !amount)
-                ? 'rgba(245,166,35,0.3)'
+                ? 'rgba(245,166,35,0.25)'
                 : 'linear-gradient(135deg, var(--saffron), #e8920a)',
               color: '#0a0f1e',
               fontFamily: 'Bebas Neue',
               fontSize: 20,
               letterSpacing: '0.08em',
               cursor: (!name.trim() || !amount) ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
             }}
           >{loading ? 'Saving...' : 'PROCEED TO PAY →'}</button>
         </div>
@@ -205,110 +251,100 @@ export default function App() {
       {step === 'pay' && (
         <div style={{
           background: 'var(--navy2)',
-          border: '1px solid rgba(0,212,255,0.2)',
+          border: '1px solid rgba(0,212,255,0.12)',
           borderRadius: 20,
-          padding: 24,
-          textAlign: 'center'
+          padding: '28px 24px',
+          textAlign: 'center',
         }}>
-          <h2 style={{ fontSize: 24, color: 'var(--cyan)', marginBottom: 4 }}>SCAN & PAY</h2>
+          <h2 style={{ fontSize: 22, color: 'var(--cyan)', marginBottom: 6 }}>SCAN & PAY</h2>
           <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 20 }}>
-            Choose how you want to pay
+            Scan the QR code or tap an app below
           </p>
 
-          {/* Amount + name summary */}
+          {/* Summary */}
           <div style={{
-            marginBottom: 20,
-            background: 'rgba(245,166,35,0.08)',
-            border: '1px solid rgba(245,166,35,0.2)',
-            borderRadius: 12,
+            background: 'rgba(245,166,35,0.07)',
+            border: '1px solid rgba(245,166,35,0.18)',
+            borderRadius: 10,
             padding: '10px 16px',
             fontSize: 13,
-            color: 'var(--saffron)'
+            color: 'var(--saffron)',
+            marginBottom: 20,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 8,
           }}>
-            Paying: <strong>₹{Number(amount).toLocaleString('en-IN')}</strong> · {name}
+            <span>{name}</span>
+            <span style={{ opacity: 0.4 }}>·</span>
+            <strong>₹{Number(amount).toLocaleString('en-IN')}</strong>
           </div>
 
-          {/* UPI Section */}
+          {/* QR */}
+          <div style={{
+            background: '#fff',
+            borderRadius: 14,
+            padding: 12,
+            display: 'inline-block',
+            boxShadow: '0 0 40px rgba(0,212,255,0.08)',
+            marginBottom: 16,
+          }}>
+            <img src={qrImage} alt="UPI QR Code" style={{ width: 210, height: 210, display: 'block' }} />
+          </div>
+
+          {/* UPI ID */}
           <div style={{
             background: 'var(--navy3)',
-            borderRadius: 16,
-            padding: 16,
-            marginBottom: 16,
-            border: '1px solid rgba(255,255,255,0.06)'
+            borderRadius: 10,
+            padding: '11px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 20,
+            border: '1px solid rgba(255,255,255,0.06)',
           }}>
-            <p style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Pay via UPI / Scan
-            </p>
-
-            <div style={{
-              background: '#fff',
-              borderRadius: 12,
-              padding: 10,
-              display: 'inline-block',
-              boxShadow: '0 0 30px rgba(0,212,255,0.1)',
-              marginBottom: 12
-            }}>
-              <img src={qrImage} alt="UPI QR Code" style={{ width: 200, height: 200, display: 'block' }} />
-            </div>
-
-            {/* UPI ID row */}
-            <div style={{
-              background: 'var(--navy2)',
-              borderRadius: 10,
-              padding: '10px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 12,
-              border: '1px solid rgba(255,255,255,0.06)'
-            }}>
-              <span style={{ fontSize: 13, color: 'var(--muted)' }}>UPI ID</span>
-              <span style={{ fontSize: 13, color: 'var(--white)', fontWeight: 500 }}>{UPI_ID}</span>
-              <button onClick={copyUPI} style={{
-                background: copied ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.06)',
-                border: 'none',
-                borderRadius: 8,
-                padding: '6px 12px',
-                color: copied ? 'var(--cyan)' : 'var(--muted)',
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}>{copied ? '✓ Copied' : 'Copy'}</button>
-            </div>
-
-            {/* UPI deep link button */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-  <p style={{ color: 'var(--muted)', fontSize: 11, marginBottom: 4 }}>
-    📱 Tap to open on mobile:
-  </p>
-  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-    <button onClick={() => window.location.href = `gpay://upi/pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
-      style={upiAppBtn('#1A73E8')}>Google Pay</button>
-    <button onClick={() => window.location.href = `phonepe://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
-      style={upiAppBtn('#5f259f')}>PhonePe</button>
-    <button onClick={() => window.location.href = `paytmmp://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
-      style={upiAppBtn('#00BAF2')}>Paytm</button>
-    <button onClick={() => window.location.href = `upi://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
-      style={upiAppBtn('#6B7280')}>Any UPI App</button>
-  </div>
-</div>
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>UPI ID</span>
+            <span style={{ fontSize: 13, color: 'var(--white)', fontWeight: 500 }}>{UPI_ID}</span>
+            <button onClick={copyUPI} style={{
+              background: copied ? 'rgba(0,212,255,0.12)' : 'rgba(255,255,255,0.06)',
+              border: 'none',
+              borderRadius: 7,
+              padding: '5px 12px',
+              color: copied ? 'var(--cyan)' : 'var(--muted)',
+              fontSize: 12,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}>{copied ? '✓ Copied' : 'Copy'}</button>
           </div>
 
-          {/* I have paid button */}
+          {/* App buttons */}
+          <p style={{ color: 'var(--muted)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+            📱 Tap to open on mobile
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 20 }}>
+            <button onClick={() => window.location.href = `gpay://upi/pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
+              style={upiAppBtn('#1A73E8')}>Google Pay</button>
+            <button onClick={() => window.location.href = `phonepe://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
+              style={upiAppBtn('#5f259f')}>PhonePe</button>
+            <button onClick={() => window.location.href = `paytmmp://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
+              style={upiAppBtn('#00BAF2')}>Paytm</button>
+            <button onClick={() => window.location.href = `upi://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR`}
+              style={upiAppBtn('#374151')}>Any UPI App</button>
+          </div>
+
           <button
             onClick={handleDone}
             style={{
               width: '100%',
               padding: '15px 0',
               borderRadius: 12,
-              border: '1px solid rgba(0,212,255,0.3)',
+              border: '1px solid rgba(0,212,255,0.25)',
               background: 'transparent',
               color: 'var(--cyan)',
               fontFamily: 'Bebas Neue',
               fontSize: 20,
               letterSpacing: '0.08em',
               cursor: 'pointer',
-              marginBottom: 8
+              marginBottom: 10,
             }}
           >I HAVE PAID ✓</button>
 
@@ -319,9 +355,8 @@ export default function App() {
               border: 'none',
               color: 'var(--muted)',
               fontSize: 13,
-              marginTop: 4,
               cursor: 'pointer',
-              textDecoration: 'underline'
+              textDecoration: 'underline',
             }}
           >← Go back</button>
         </div>
@@ -331,82 +366,86 @@ export default function App() {
       {step === 'done' && (
         <div style={{
           background: 'var(--navy2)',
-          border: '1px solid rgba(0,212,255,0.2)',
+          border: '1px solid rgba(0,212,255,0.12)',
           borderRadius: 20,
-          padding: 32,
-          textAlign: 'center'
+          padding: '40px 24px',
+          textAlign: 'center',
         }}>
-          <div style={{ fontSize: 52, marginBottom: 12 }}>🎉</div>
-          <h2 style={{ fontSize: 28, color: 'var(--cyan)', marginBottom: 8 }}>THANK YOU!</h2>
-          <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
-            Your name will appear in the donor wall below once the payment is confirmed.
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
+          <h2 style={{ fontSize: 28, color: 'var(--cyan)', marginBottom: 10 }}>THANK YOU!</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.7, maxWidth: 280, margin: '0 auto 24px' }}>
+            Your support means everything. Your name will appear on the donor wall below.
           </p>
           <button
-            onClick={() => { setStep('form'); setName(''); setAmount(''); setCustomAmount(false) }}
+            onClick={resetForm}
             style={{
-              marginTop: 24,
               padding: '12px 32px',
               borderRadius: 12,
               border: '1px solid rgba(245,166,35,0.3)',
               background: 'transparent',
               color: 'var(--saffron)',
               fontSize: 14,
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >Donate again</button>
         </div>
       )}
 
       {/* DONOR WALL */}
-      <div style={{ marginTop: 40 }}>
-        <h2 style={{ fontSize: 26, marginBottom: 4 }}>
-          DONOR <span style={{ color: 'var(--saffron)' }}>WALL</span>
-        </h2>
-        <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 16 }}>
-          {donors.length} supporter{donors.length !== 1 ? 's' : ''} so far
-        </p>
+      <div style={{ marginTop: 48 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 24 }}>
+            DONOR <span style={{ color: 'var(--saffron)' }}>WALL</span>
+          </h2>
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+            {donors.length} supporter{donors.length !== 1 ? 's' : ''}
+          </span>
+        </div>
 
         {donors.length === 0 ? (
           <div style={{
             background: 'var(--navy2)',
             borderRadius: 14,
-            padding: '32px 20px',
+            padding: '36px 20px',
             textAlign: 'center',
             color: 'var(--muted)',
             fontSize: 14,
-            border: '1px dashed rgba(255,255,255,0.08)'
-          }}>Be the first to donate! 🚀</div>
+            border: '1px dashed rgba(255,255,255,0.07)',
+          }}>Be the first to support! 🚀</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {donors.map((d, i) => (
               <div key={i} style={{
                 background: 'var(--navy2)',
-                border: i === 0 ? '1px solid rgba(245,166,35,0.3)' : '1px solid rgba(255,255,255,0.06)',
+                border: i === 0
+                  ? '1px solid rgba(245,166,35,0.25)'
+                  : '1px solid rgba(255,255,255,0.05)',
                 borderRadius: 14,
                 padding: '14px 18px',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
-                    width: 36,
-                    height: 36,
+                    width: 38,
+                    height: 38,
                     borderRadius: '50%',
-                    background: i === 0 ? 'rgba(245,166,35,0.2)' : 'rgba(255,255,255,0.06)',
+                    background: i === 0 ? 'rgba(245,166,35,0.15)' : 'rgba(255,255,255,0.05)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: 15,
                     fontWeight: 600,
-                    color: i === 0 ? 'var(--saffron)' : 'var(--muted)'
+                    color: i === 0 ? 'var(--saffron)' : 'var(--muted)',
+                    flexShrink: 0,
                   }}>
                     {d.donor_name.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{d.donor_name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                      {new Date(d.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--white)' }}>{d.donor_name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+                      {new Date(d.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </div>
                   </div>
                 </div>
@@ -414,49 +453,14 @@ export default function App() {
                   fontFamily: 'Bebas Neue',
                   fontSize: 20,
                   color: i === 0 ? 'var(--saffron)' : 'var(--cyan)',
-                  letterSpacing: '0.04em'
+                  letterSpacing: '0.04em',
                 }}>₹{Number(d.amount).toLocaleString('en-IN')}</span>
               </div>
             ))}
           </div>
         )}
       </div>
+
     </div>
   )
 }
-
-const labelStyle = {
-  display: 'block',
-  fontSize: 12,
-  fontWeight: 600,
-  letterSpacing: '0.1em',
-  color: 'var(--muted)',
-  marginBottom: 8,
-  textTransform: 'uppercase'
-}
-
-const inputStyle = { You 
-  width: '100%',
-  padding: '12px 14px',
-  borderRadius: 10,
-  border: '1px solid rgba(255,255,255,0.1)',
-  background: 'var(--navy3)',
-  color: 'var(--white)',
-  fontSize: 15,
-  outline: 'none',
-  marginBottom: 4,
-  fontFamily: 'DM Sans, sans-serif'
-}
-
-
-const upiAppBtn = (bg) => ({
-  padding: '12px 0',
-  borderRadius: 10,
-  border: 'none',
-  background: bg,
-  color: '#fff',
-  fontFamily: 'Bebas Neue',
-  fontSize: 16,
-  letterSpacing: '0.06em',
-  cursor: 'pointer'
-})
