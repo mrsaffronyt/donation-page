@@ -200,8 +200,29 @@ export default function App() {
               </button>
             </div>
 
-            {/* App buttons removed */}
+            {/* App buttons removed */
+            // One tap UPI button
 
+            <a
+              href={`upi://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR&tn=Donation`}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '16px 0',
+                borderRadius: 12,
+                background: 'linear-gradient(135deg, var(--saffron), #e8920a)',
+                color: '#0a0f1e',
+                fontFamily: 'Bebas Neue',
+                fontSize: 22,
+                letterSpacing: '0.08em',
+                textDecoration: 'none',
+                textAlign: 'center',
+                marginBottom: 12,
+                marginTop: 4,
+              }}
+            >📱 PAY NOW — ONE TAP</a>
+            }
+            
             <button onClick={handleDone} className="pay-done-btn">I HAVE PAID ✓</button>
 
             <button onClick={() => setStep('form')} className="back-btn">← Go back</button>
