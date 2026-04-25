@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 import qrImage from './assets/qr.png'
 
 const PRESET_AMOUNTS = [51, 101, 251, 501]
-const UPI_ID = 'chineshsoni2@okhdfcbank'
+const UPI_ID = 'chineshsoni2@oksbi'
 
 export default function App() {
   const [name, setName] = useState('')
@@ -204,7 +204,7 @@ export default function App() {
             // One tap UPI button
 
             <a
-              href={`upi://pay?pa=${UPI_ID}&pn=Chinesh%20Soni&am=${amount}&cu=INR&tn=Donation`}
+              href={`upi://pay?pa=chineshsoni2@oksbi&pn=Chinesh%20Soni&am=${amount}&cu=INR&tn=Donation`}
               style={{
                 display: 'block',
                 width: '100%',
